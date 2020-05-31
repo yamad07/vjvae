@@ -52,7 +52,6 @@ class VisualVae(BaseModel):
         tf.summary.image('Originals', self.images, max_outputs=4)
         tf.summary.image('Reconstructions', self.reconstructions, max_outputs=4)
         tf.summary.scalar('Loss', self.loss)
-        logging.info(self)
 
 
     def calc_loss(self, originals, reconstructions, means, sigmas):

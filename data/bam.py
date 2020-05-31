@@ -2,6 +2,7 @@ import logging, multiprocessing, os
 
 import numpy as np
 import tensorflow as tf
+from magenta.music import note_sequence_io
 
 from data.dataset import Dataset
 

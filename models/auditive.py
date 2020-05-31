@@ -11,9 +11,10 @@ from magenta.models.music_vae import configs
 class MusicVae(BaseModel):
     """Wrapper class for a pre-trained MusicVAE model (based on magenta.models.music_vae.TrainedModel).
     """
-    def __init__(self, config_name, batch_size):
+    def __init__(self, config_name, batch_size, beta=1e-2):
         self.config_name = config_name
         self.batch_size = batch_size
+        self.beta = beta
         # load config
         self._config = copy.deepcopy(configs.CONFIG_MAP[config_name])
         # self._config.hparams.use_cudnn = tf.test.is_gpu_available() # enable cuDNN if available
@@ -59,6 +60,7 @@ class MusicVae(BaseModel):
         # if hierarchical, add up lengths of all n bars
         if len(lengths.shape) > 1:
             lengths = tf.reduce_sum(lengths, axis=1) # add up lengths of all n bars
+
         return audios, lengths
 
 
@@ -69,11 +71,18 @@ class MusicVae(BaseModel):
         # debug info
         logging.info(self)
 
-
     def save_midi(self, audio_tensor, path):
         note_seq = self._config.data_converter.to_items([audio_tensor])[0]
         music.sequence_proto_to_midi_file(note_seq, path)
 
+    def calc_loss(self, originals, reconstructions, means, sigmas):
+        originals = tf.reshape(originals, [self.batch_size, -1])
+        reconstructions = tf.reshape(reconstructions, [self.batch_size, -1])
+        self.recon_loss = tf.reduce_mean(tf.reduce_sum(tf.square(originals - reconstructions), axis=-1))
+        # KL divergence
+        self.latent_loss = tf.reduce_mean(-0.5 * tf.reduce_sum(1. + sigmas - tf.square(means) - tf.exp(sigmas), axis=-1)) # mean KL over latent dims
+        loss = self.recon_loss + self.beta * self.latent_loss
+        return loss
 
     def sample(self, tf_session, latents, temperature):
         num_samples = latents.shape[0]

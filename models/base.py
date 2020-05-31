@@ -55,7 +55,7 @@ class BaseModel:
                 # end of dataset
                 except tf.errors.OutOfRangeError:
                     # exit batch loop and proceed to next epoch
-                    break
+                    pass
             # write epoch summary
             if tf_writer: tf_writer.add_summary(cur_summaries, self.epoch)
             logging.info("\r[%s] Completed epoch %d/%d (%d batches). Average losses (%s).%s" % (self.__class__.__name__, self.epoch, max_epochs, batch_idx, avg_losses_str, ' '*len(cur_losses_str)))
@@ -68,7 +68,7 @@ class BaseModel:
             else:
                 valid_losses = avg_losses
                 valid_losses_str = avg_losses_str
-           
+
             # save latest model
             logging.info("Saving latest model...")
             self.save(tf_session, os.path.join(model_path, 'latest_model.ckpt'))
