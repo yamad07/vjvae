@@ -1,8 +1,0 @@
-numpy
-scipy
-sklearn
-matplotlib
-Pillow
-pretty_midi
-tensorflow
-tensorflow-probability
